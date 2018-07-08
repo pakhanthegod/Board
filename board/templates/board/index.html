@@ -1,0 +1,33 @@
+{% extends "board/base.html" %}
+{% block content %}
+    {% if posts %}
+    {% for post in posts %}
+        <div class="col-md-12 card mb-2">
+            <div class="card-body">
+                <h3 class="card-title">{{ post.post_title }} <span class="badge badge-secondary">{{ post.post_date|date:'Y-m-d H:i' }}</span></h3>
+                <p class="card-text">{{ post.post_text|truncatewords:70 }}</p>
+                <a href="{% url 'board:detail' post.id %}">В тред &raquo;</a></li>
+            </div>
+        </div>
+    {% endfor %}
+        <div class="pagination mb-2 d-flex justify-content-center">
+            <span>
+            {% if posts.has_previous %}
+                <a href="?page=1" class="btn btn-primary">&laquo; В начало</a>
+                <a href="?page={{ posts.previous_page_number }}" class="btn btn-primary">Предыдущая</a>
+            {% endif %}
+
+                <span>
+                    Страница {{ posts.number }} из {{ posts.paginator.num_pages }}.
+                </span>
+
+            {% if posts.has_next %}
+                <a href="?page={{ posts.next_page_number }}" class="btn btn-primary">Следующая</a>
+                <a href="?page={{ posts.paginator.num_pages }}" class="btn btn-primary">В конец &raquo;</a>
+            {% endif %}
+            </span>
+        </div>
+    {% else %}
+        <p>No posts are available.</p>
+    {% endif %}
+{% endblock %}
