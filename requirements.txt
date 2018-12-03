@@ -13,3 +13,4 @@ pylint-plugin-utils==0.4
 pytz==2018.7
 six==1.11.0
 wrapt==1.10.11
+django-heroku
