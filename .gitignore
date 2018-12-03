@@ -3,3 +3,4 @@ board/migrations
 .board
 .vscode
 board.db
+**/__pycache__
