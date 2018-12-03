@@ -8,35 +8,37 @@
 
 {% block content %}
     <ul class="list-group">
-        {% for post in posts %}
-        <li class="list-group-item border-0">
-            <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            {{ post.date }}
-                        </div>
-                        <div>
-                            <span class="oi oi-eye"></span> {{ post.view_count }}
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ post.title }}</h5>
-                    <div class="card-text">
-                        <div class="d-flex flex-column">
-                            <div class="d-flex flex-row justify-content-start mb-2">
-                                {% if post.image %}
-                                <img class="mr-2" src="{{ post.image.url }}">
-                                {% endif %}
-                                <p>{{ post.text|truncatewords:40 }}</p>
+        {% if posts %}
+            {% for post in posts %}
+            <li class="list-group-item border-0">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                {{ post.date }}
                             </div>
-                            <a href="{{ post.get_absolute_url }}" class="btn btn-secondary align-self-end">Читать далее...</a>
+                            <div>
+                                <span class="oi oi-eye"></span> {{ post.view_count }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ post.title }}</h5>
+                        <div class="card-text">
+                            <div class="d-flex flex-column">
+                                <div class="d-flex flex-row justify-content-start mb-2">
+                                    {% if post.image %}
+                                    <img class="mr-2" src="{{ post.image.url }}">
+                                    {% endif %}
+                                    <p>{{ post.text|truncatewords:40 }}</p>
+                                </div>
+                                <a href="{{ post.get_absolute_url }}" class="btn btn-secondary align-self-end">Читать далее...</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </li>
-        {% endfor %}
+            </li>
+            {% endfor %}
+        {% endif %}
     </ul>
 {% endblock %}
