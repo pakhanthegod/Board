@@ -1,53 +1,25 @@
-from django import forms
-
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Field, Layout, Div
+from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
 
 from .models import Post, Comment
 
-class PostForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(PostForm, self).__init__(*args, **kwargs)
 
-        self.helper = FormHelper(self)
-        self.helper.form_class = 'border rounded p-3'
-        self.helper.layout = Layout(
-            Div(
-                Field('post_title', css_class='form-control'),
-                css_class='form-group'
-            ),
-            Div(
-                Field('post_text', css_class='form-control'),
-                css_class='form-group'
-            )
-        )
-        self.helper.layout.append(Submit('save', 'Создать'))
-
+class PostCreate(ModelForm):
     class Meta:
         model = Post
-        exclude = ['post_date']
+        fields = ('title', 'text', 'image')
         labels = {
-            'post_title': 'Тема: ',
-            'post_text': 'Текст: '
+            'title': _('Тема'),
+            'text': _('Текст'),
+            'image': _('Изображение')
         }
 
-class CommentForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(CommentForm, self).__init__(*args, **kwargs)
 
-        self.helper = FormHelper(self)
-        self.helper.form_class = 'border rounded p-3'
-        self.helper.layout = Layout(
-            Div(
-                Field('comment_text', css_class='form-control'),
-                css_class='form-group'
-            ),
-        )
-        self.helper.layout.append(Submit('save', 'Отправить'))
-
+class CommentCreate(ModelForm):
     class Meta:
         model = Comment
-        exclude = ['comment_date', 'post']
+        fields = ('text', 'image')
         labels = {
-            'comment_text': 'Написать комментарий: '
+            'text': _('Текст'),
+            'image': _('Изображение')
         }

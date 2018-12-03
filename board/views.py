@@ -1,38 +1,94 @@
+import re
+
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import ListView, DetailView
+from django.views.generic.edit import CreateView
+from django.urls import reverse
+from django.views.generic.base import View
+from django.core.exceptions import ObjectDoesNotExist
 
-from .models import Post, Comment
-from .forms import PostForm, CommentForm
+from .models import Post, Comment, Thread
+from .forms import PostCreate, CommentCreate
 
-# Create your views here.
-def index(request):
-    posts_list = Post.objects.all().order_by('-post_date')
-    paginator = Paginator(posts_list, 5)
 
-    page = request.GET.get('page')
-    posts = paginator.get_page(page)
-    return render(request, 'board/index.html', {'posts': posts})
+class ThreadList(ListView):
+    model = Thread
+    template_name = 'board/index.html'
+    context_object_name = 'threads'
 
-def detail(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    if request.method == 'POST':
-        form = CommentForm(request.POST)
+
+class PostList(ListView):
+    template_name = 'board/thread.html'
+    context_object_name = 'posts'
+
+    def get_queryset(self):
+        thread = get_object_or_404(Thread, name=self.kwargs['thread'])
+        return Post.objects.filter(thread=thread)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['thread'] = self.kwargs['thread']
+        return context
+
+
+class PostDetail(DetailView):
+    model = Post
+    template_name = 'board/post.html'
+    context_object_name = 'post'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post = get_object_or_404(Post, pk=self.kwargs['pk'])
+        post.view_count += 1
+        post.save()
+        context['form'] = CommentCreate()
+        return context
+
+
+class PostCreateView(CreateView):
+    template_name = 'board/post_create.html'
+    form_class = PostCreate
+
+    def form_valid(self, form):
+        form_save = form.save(commit=False)
+        thread = get_object_or_404(Thread, name=self.kwargs['thread'])
+        form_save.thread = thread
+        form_save.save()
+        return super().form_valid(form_save)
+
+    def get_success_url(self):
+        return reverse('board:thread_posts', kwargs={'thread': self.kwargs['thread']})
+
+
+class CommentCreateView(View):
+    form_class = CommentCreate
+    template_name = 'board/post.html'
+
+    def post(self, request, *args, **kwargs):
+        thread = self.kwargs['thread']
+        post_id = self.kwargs['pk']
+        form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             comment = form.save(commit=False)
-            comment.post = post
-            comment.save()
-            return redirect('board:detail', post_id=post_id)
-    else:
-        form = CommentForm()
-    return render(request, 'board/detail.html', {'post': post, 'form': form})
-
-def post_new(request):
-    if request.method == 'POST':
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = form.save()
-            post.save()
-            return redirect('board:detail', post_id=post.pk)
-    else:
-        form = PostForm()
-    return render(request, 'board/post_edit.html', {'form': form})
+            try:
+                pattern = r'(>>\d+)'
+                replies_to = re.findall(pattern, comment.text)
+                post = Post.objects.get(pk=post_id)
+                comment.post = post
+                for reply in replies_to:
+                    trunc_reply = reply[2:]
+                    comment.text = comment.text.replace(reply, f'<a href="#{trunc_reply}">&gt;&gt;{trunc_reply}</a>')
+                comment.save()
+            except ObjectDoesNotExist:
+                pass
+            for reply in replies_to:
+                try:
+                    obj = Comment.objects.get(pk=int(reply[2:]))
+                except ObjectDoesNotExist:
+                    pass
+                comment.reply_to.add(obj)
+                print(comment.reply_to.all())
+            form.save_m2m()
+            return redirect('board:post', thread=thread, pk=post_id)
+        return render(request, self.template_name, {'form': form, 'thread': thread, 'pk': post_id})

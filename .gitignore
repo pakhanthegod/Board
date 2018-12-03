@@ -1,0 +1,5 @@
+media/images/*
+board/migrations
+.board
+.vscode
+board.db

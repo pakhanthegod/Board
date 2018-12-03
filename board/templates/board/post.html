@@ -1,0 +1,78 @@
+{% extends "board/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+    <div class="card mb-3">
+        <div class="card-header">
+            {{ post.title }}
+        </div>
+        <div class="card-body">
+            <div class="card-text">
+                    <div class="d-flex flex-row justify-content-start mb-2">
+                        {% if post.image %}
+                        <img class="align-self-start mr-2" src="{{ post.image.url }}">
+                        {% endif %}
+                        <p>{{ post.text }}</p>
+                    </div>
+                </div>
+        </div>
+        <div class="card-footer text-muted font-italic">
+            {{ post.date }}
+        </div>
+    </div>
+
+    <h5>Комментарии:</h5>
+    <div class="card bg-light mb-3">
+        <ul class="list-group list-group-flush">
+        {% if post.comments.all %}
+            {% for comment in post.comments.all %}
+            <li class="list-group-item" id="{{ comment.pk }}">
+                <p class="comment_id">[<a href="">{{ comment.id }}</a>]</p>
+                {% if comment.image %}
+                    <img src='{{ comment.image.url }}'>
+                {% endif %}
+                <p>{{ comment.text|safe|linebreaks }}</p>
+                <span class="font-italic">{{ comment.date }}</span>
+                {% if comment.replies.all %}
+                <p>
+                    Ответы:
+                    {% for reply in comment.replies.all %}
+                    <a href="#{{ reply }}">{{ reply }}</a>
+                    {% endfor %}
+                </p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        {% else %}
+            <li class="list-group-item text-muted font-italic">Комментариев нет</li>
+        </ul>
+        {% endif %}
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data" action="{% url 'board:comment_create' thread=post.thread.name pk=post.pk %}">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary">Ответить</button>
+    </form>
+
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript">
+        let lis = document.querySelectorAll('.list-group-item > .comment_id > a');
+        let commentTextField = document.getElementsByTagName('textarea')[0];
+        for (let i = 0; i < lis.length; i++) {
+            lis[i].addEventListener("click", function() {
+                event.preventDefault();
+                let commentId = this.innerHTML;
+                if (commentTextField.value === '') {
+                    commentTextField.value += '>>' + commentId;
+                } else {
+                    commentTextField.value += '\n>>' + commentId;
+                }
+                
+            });
+        }
+    </script>
+{% endblock %}
