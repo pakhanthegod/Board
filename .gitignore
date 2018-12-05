@@ -1,5 +1,6 @@
 media/images/*
 board/migrations
+board/static/board/*
 .board
 .vscode
 board.db
