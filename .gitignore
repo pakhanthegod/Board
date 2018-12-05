@@ -1,6 +1,7 @@
 media/images/*
-board/migrations
-board/static/board/*
+**/__pycache__
+board/migrations/
+board/static/
 .board
 .vscode
 board.db
