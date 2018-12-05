@@ -76,19 +76,19 @@ class CommentCreateView(View):
                 replies_to = re.findall(pattern, comment.text)
                 post = Post.objects.get(pk=post_id)
                 comment.post = post
+                comment.save()
                 for reply in replies_to:
-                    trunc_reply = reply[2:]
-                    comment.text = comment.text.replace(reply, f'<a href="#{trunc_reply}">&gt;&gt;{trunc_reply}</a>')
+                    try:
+                        trunc_reply = int(reply[2:])
+                        obj = Comment.objects.get(pk=trunc_reply, post=post)
+                        if obj:
+                            comment.reply_to.add(obj)
+                            comment.text = comment.text.replace(reply, f'<a href="#{trunc_reply}">&gt;&gt;{trunc_reply}</a>')
+                    except ObjectDoesNotExist:
+                        pass
                 comment.save()
             except ObjectDoesNotExist:
                 pass
-            for reply in replies_to:
-                try:
-                    obj = Comment.objects.get(pk=int(reply[2:]))
-                except ObjectDoesNotExist:
-                    pass
-                comment.reply_to.add(obj)
-                print(comment.reply_to.all())
             form.save_m2m()
             return redirect('board:post', thread=thread, pk=post_id)
         return render(request, self.template_name, {'form': form, 'thread': thread, 'pk': post_id})

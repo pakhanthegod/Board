@@ -28,7 +28,7 @@
         {% if post.comments.all %}
             {% for comment in post.comments.all %}
             <li class="list-group-item" id="{{ comment.pk }}">
-                <p class="comment_id">[<a href="">{{ comment.id }}</a>]</p>
+                <p><span class="comment_id">[{{ comment.id }}]</span> <a href="" class="comment_reply">Ответить</a></p>
                 {% if comment.image %}
                     <img src='{{ comment.image.url }}'>
                 {% endif %}
@@ -60,16 +60,18 @@
 
 {% block javascript %}
     <script type="text/javascript">
-        let lis = document.querySelectorAll('.list-group-item > .comment_id > a');
+        let comments = document.querySelectorAll('.comment_id');
+        let reply_links = document.querySelectorAll('.comment_reply')
         let commentTextField = document.getElementsByTagName('textarea')[0];
-        for (let i = 0; i < lis.length; i++) {
-            lis[i].addEventListener("click", function() {
+        for (let i = 0; i < comments.length; i++) {
+            reply_links[i].addEventListener("click", function(event) {
                 event.preventDefault();
-                let commentId = this.innerHTML;
+                let commentId = comments[i].innerHTML
+                let truncatedCommentId = commentId.substring(1, commentId.length - 1)
                 if (commentTextField.value === '') {
-                    commentTextField.value += '>>' + commentId;
+                    commentTextField.value += '>>' + truncatedCommentId;
                 } else {
-                    commentTextField.value += '\n>>' + commentId;
+                    commentTextField.value += '\n>>' + truncatedCommentId;
                 }
                 
             });
