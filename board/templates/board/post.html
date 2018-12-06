@@ -50,10 +50,9 @@
         {% endif %}
     </div>
     
-    <form method="POST" enctype="multipart/form-data" action="{% url 'board:comment_create' thread=post.thread.name pk=post.pk %}">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form|crispy }}
-        <button type="submit" class="btn btn-primary">Ответить</button>
+        {% crispy form %}
     </form>
 
 {% endblock %}

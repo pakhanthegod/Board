@@ -40,20 +40,6 @@ class PostList(ListView):
         return context
 
 
-class PostDetail(DetailView):
-    model = Post
-    template_name = 'board/post.html'
-    context_object_name = 'post'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        post = get_object_or_404(Post, pk=self.kwargs['pk'])
-        post.view_count += 1
-        post.save()
-        context['form'] = CommentCreate()
-        return context
-
-
 class PostCreateView(CreateView):
     template_name = 'board/post_create.html'
     form_class = PostCreate
@@ -69,13 +55,29 @@ class PostCreateView(CreateView):
         return reverse('board:thread_posts', kwargs={'thread': self.kwargs['thread']})
 
 
-class CommentCreateView(View):
+class PostDetail(View):
     form_class = CommentCreate
     template_name = 'board/post.html'
 
-    def post(self, request, *args, **kwargs):
-        thread = self.kwargs['thread']
+    def get(self, request, *args, **kwargs):
+        thread_name = self.kwargs['thread']
         post_id = self.kwargs['pk']
+        post = get_object_or_404(Post, pk=post_id)
+        form = self.form_class()
+
+        context = {
+            'thread': thread_name,
+            'pk': post_id,
+            'post': post,
+            'form': form,
+        }
+
+        return render(request, self.template_name, context=context)
+
+    def post(self, request, *args, **kwargs):
+        thread_name = self.kwargs['thread']
+        post_id = self.kwargs['pk']
+        post = get_object_or_404(Post, pk=post_id)
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             comment = form.save(commit=False)
@@ -98,5 +100,13 @@ class CommentCreateView(View):
             except ObjectDoesNotExist:
                 pass
             form.save_m2m()
-            return redirect('board:post', thread=thread, pk=post_id)
-        return render(request, self.template_name, {'form': form, 'thread': thread, 'pk': post_id})
+            return redirect('board:post', thread=thread_name, pk=post_id)
+
+        context = {
+            'thread': thread_name,
+            'pk': post_id,
+            'post': post,
+            'form': form,
+        }
+
+        return render(request, self.template_name, context=context)
