@@ -23,6 +23,7 @@ class Post(models.Model):
     date = models.DateTimeField(auto_now_add=timezone.now)
     image = models.ImageField(upload_to='images/%Y/%m/%d/', max_length=255, null=True, blank=True)
     view_count = models.IntegerField(default=0)
+    fixed = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-date']

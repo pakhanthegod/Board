@@ -28,7 +28,15 @@ class PostList(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        posts = self.get_queryset()
+        posts_without_fixed = posts.filter(fixed=False)
+        posts_with_fixed = posts.filter(fixed=True)
+
         context['thread'] = self.kwargs['thread']
+        context['fixed_posts'] = posts_with_fixed
+        context['nonfixed_posts'] = posts_without_fixed
+
         return context
 
 
